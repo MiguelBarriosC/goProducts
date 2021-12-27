@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/MiguelBarriosC/goProducts/models"
-	"github.com/gin-gonic/gin"
+	"github.com/MiguelBarriosC/goProducts/models" // Package models
+	"github.com/gin-gonic/gin"                    // Gin
 )
 
 func GetEndpoint(c *gin.Context) {
@@ -22,16 +22,18 @@ func GetEndpoint(c *gin.Context) {
 
 func GetOneEndpoint(c *gin.Context) {
 	id := c.Param("id")
-	//us := new(User)
-	u, err := GetOne(id)
+	p, err := GetOne(id)
 
 	if err != nil {
 		fmt.Print(err)
-		http.Error(c.Writer, "No existe!", http.StatusInternalServerError)
+		c.JSON(404, gin.H{
+			"error":   true,
+			"message": "No existe!",
+		})
 		return
 	}
 
-	c.JSON(200, u)
+	c.JSON(200, p)
 }
 
 func CreateEndpoint(c *gin.Context) {
@@ -40,14 +42,20 @@ func CreateEndpoint(c *gin.Context) {
 	err := json.NewDecoder(c.Request.Body).Decode(&product)
 
 	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   true,
+			"message": err.Error(),
+		})
 		return
 	}
 
 	e := Create(product)
 
 	if e != nil {
-		http.Error(c.Writer, e.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   true,
+			"message": e.Error(),
+		})
 		return
 	}
 
@@ -62,14 +70,20 @@ func UpdateEndpoint(c *gin.Context) {
 	err := json.NewDecoder(c.Request.Body).Decode(&p)
 
 	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   true,
+			"message": err.Error(),
+		})
 		return
 	}
 
 	e := Update(p)
 
 	if e != nil {
-		http.Error(c.Writer, e.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   true,
+			"message": e.Error(),
+		})
 		return
 	}
 
@@ -83,7 +97,10 @@ func DeleteEndpoint(c *gin.Context) {
 
 	err := Delete(id)
 	if !err {
-		http.Error(c.Writer, "Error al eliminar producto con id: "+id, http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   true,
+			"message": "Error al eliminar producto con id: " + id,
+		})
 		return
 	}
 	c.JSON(200, gin.H{
